@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Complaints Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        input, textarea {
+            padding: 10px;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .complaints {
+            margin-top: 20px;
+        }
+        .complaint {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .complaint h3 {
+            margin-top: 0;
+        }
+        .complaint p {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Student Complaints Portal</h1>
+        
+        <form @submit.prevent="submitComplaint">
+            <label for="name">Name:</label>
+            <input type="text" id="name" v-model="newComplaint.name" required>
+            
+            <label for="room">Room Number:</label>
+            <input type="text" id="room" v-model="newComplaint.room" required>
+            
+            <label for="category">Category:</label>
+            <input type="text" id="category" v-model="newComplaint.category" required>
+            
+            <label for="description">Description:</label>
+            <textarea id="description" v-model="newComplaint.description" required></textarea>
+            
+            <button type="submit">Submit Complaint</button>
+        </form>
+        
+        <div class="complaints">
+            <h2>Recent Complaints</h2>
+            <div v-for="complaint in complaints" :key="complaint.id" class="complaint">
+                <h3>{{ complaint.category }}</h3>
+                <p><strong>Name:</strong> {{ complaint.name }}</p>
+                <p><strong>Room:</strong> {{ complaint.room }}</p>
+                <p><strong>Description:</strong> {{ complaint.description }}</p>
+                <p><strong>Date:</strong> {{ formatDate(complaint.date) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const complaints = ref([]);
+                const newComplaint = ref({
+                    name: '',
+                    room: '',
+                    category: '',
+                    description: ''
+                });
+
+                const submitComplaint = () => {
+                    const complaint = {
+                        ...newComplaint.value,
+                        id: Date.now(),
+                        date: new Date()
+                    };
+                    complaints.value.unshift(complaint);
+                    newComplaint.value = {
+                        name: '',
+                        room: '',
+                        category: '',
+                        description: ''
+                    };
+                };
+
+                const formatDate = (date) => {
+                    return moment(date).format('MMMM Do YYYY, h:mm:ss a');
+                };
+
+                return {
+                    complaints,
+                    newComplaint,
+                    submitComplaint,
+                    formatDate
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
