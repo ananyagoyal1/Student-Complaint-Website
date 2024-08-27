@@ -6,6 +6,8 @@
     <title>Student Complaints Portal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,7 +101,20 @@
     </div>
 
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, onMounted } = Vue;
+
+        // Initialize Firebase (replace with your own config)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         createApp({
             setup() {
@@ -115,9 +130,9 @@
                     const complaint = {
                         ...newComplaint.value,
                         id: Date.now(),
-                        date: new Date()
+                        date: new Date().toISOString()
                     };
-                    complaints.value.unshift(complaint);
+                    database.ref('complaints').push(complaint);
                     newComplaint.value = {
                         name: '',
                         room: '',
@@ -126,9 +141,20 @@
                     };
                 };
 
-                const formatDate = (date) => {
-                    return moment(date).format('MMMM Do YYYY, h:mm:ss a');
+                const formatDate = (dateString) => {
+                    return moment(dateString).format('MMMM Do YYYY, h:mm:ss a');
                 };
+
+                onMounted(() => {
+                    database.ref('complaints').on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        const complaintsArray = [];
+                        for (let id in data) {
+                            complaintsArray.push({ id, ...data[id] });
+                        }
+                        complaints.value = complaintsArray.sort((a, b) => b.date.localeCompare(a.date));
+                    });
+                });
 
                 return {
                     complaints,
